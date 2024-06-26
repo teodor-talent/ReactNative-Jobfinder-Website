@@ -1,0 +1,37 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
+    - name: Log in to Expo
+      uses: expo/expo-github-action@v5
+      with:
+        expo-version: 3.x
+        expo-username: ${{ secrets.EAS_USERNAME }}
+        expo-password: ${{ secrets.EAS_PASSWORD }}
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Android APK Bundle
+      run: expo build:android
+
+    - name: Upload the APK to Uploadcare
+      run: |
+        curl -F "UPLOADCARE_PUB_KEY=${{ secrets.UPLOADCARE_PUB_KEY }}" \
+             -F "file=@./android/app/build/outputs/apk/release/app-release.apk" \
+             "https://upload.uploadcare.com/base/"
+

@@ -1,0 +1,30 @@
+name: "CI CD Main"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ master ]
+
+jobs:
+  install-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Nodejs v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "npm"
+          
+      - name: Install Node modules
+        run: npm install
+
+      - name: Lint
+        run: npm run lint:check
+        
+      - name: Prettier
+        run: npm run prettier:check

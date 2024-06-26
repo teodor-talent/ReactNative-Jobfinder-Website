@@ -1,0 +1,40 @@
+name: Generate Package List
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 0 * * *"  # Runs every day at midnight UTC
+
+jobs:
+  generate-package-list:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Node Install
+        run: |
+          # npm install
+          npm ci
+
+      - name: Generate package list
+        run: |
+          # Find the packages between the markers in the latest commit
+          package_list=$(npm list --depth=0)
+
+          # Update the README.md file with the package list
+          sed -i '/<!-- PACKAGES -->/,/<!-- END_PACKAGES -->/c\<!-- PACKAGES -->\n\n'```bash"${package_list}"```'\n\n<!-- END_PACKAGES -->' README.md
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "Update package list" || true
+          git push origin HEAD:master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
